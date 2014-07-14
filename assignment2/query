@@ -1,0 +1,70 @@
+(a) select: Write a query that is equivalent to the following relational algebra expression.
+
+```
+σ10398_txt_earn(frequency)
+```
+
+```
+    select term from Frequency where docid="10398_txt_earn";
+```
+
+
+(b) select project: Write a SQL statement that is equivalent to the following relational algebra expression.
+
+```
+πterm(σdocid=10398_txt_earn and count=1(frequency))
+```
+
+```
+    select term from Frequency where docid="10398_txt_earn" and count=1;
+```
+
+(c) union: Write a SQL statement that is equivalent to the following relational algebra expression. (Hint: you can use the UNION keyword in SQL)
+
+    ```
+πterm(σdocid=10398_txt_earn and count=1(frequency)) U πterm(σdocid=925_txt_trade and count=1(frequency))
+    ```
+
+    ```
+    select count(DISTINCT term) from Frequency where (docid="10398_txt_earn" or docid="925_txt_trade") and count=1;
+    ```
+
+(d) count: Write a SQL statement to count the number of documents containing the word "parliament"
+
+    ```
+    select count(*) from Frequency where term="parliament";
+    ```
+
+(e) big documents Write a SQL statement to find all documents that have more than 300 total terms, including duplicate terms. (Hint: You can use the HAVING clause, or you can use a nested query. Another hint: Remember that the count column contains the term frequencies, and you want to consider duplicates.) (docid, term_count)
+
+    ```
+    select sum(count),docid from Frequency where 1 group by docid having sum(count) > 300;
+    ```
+
+(f) two words: Write a SQL statement to count the number of unique documents that contain both the word 'transactions' and the word 'world'.
+
+    ```
+    select count(docid) from Frequency where term="world" and docid in (select docid from Frequency where term="transactions");
+    ```
+
+(g) multiply: Express A X B as a SQL query, referring to the class lecture for hints.
+
+```
+    #select a.row_num, b.col_num, sum(a.value*b.value) from a join b where a.col_num = b.row_num group by a.row_num, b.col_num having sum(a.value * b.value)
+    select sum(a.value*b.value) from a join b where a.col_num = b.row_num and a.row_num = 2 and b.col_num = 3 group by a.row_num, b.col_num having sum(a.value * b.value);
+```
+
+(h) similarity matrix: Write a query to compute the similarity matrix DDT. (Hint: The transpose is trivial -- just join on columns to columns instead of columns to rows.) The query could take some time to run if you compute the entire result. But notice that you don't need to compute the similarity of both (doc1, doc2) and (doc2, doc1) -- they are the same, since similarity is symmetric. If you wish, you can avoid this wasted work by adding a condition of the form a.docid < b.docid to your query. (But the query still won't return immediately if you try to compute every result -- don't expect otherwise.)
+
+```
+    select sum(a.count*b.count) from Frequency a join Frequency b where a.term=b.term and a.docid='10080_txt_crude' and b.docid='17035_txt_earn' group by a.docid, b.docid having sum(a.docid * b.docid);
+```
+
+(i) keyword search: Find the best matching document to the keyword query "washington taxes treasury". You can add this set of keywords to the document corpus with a union of scalar queries:
+
+```
+CREATE VIEW wtt_view AS SELECT * FROM frequency where term in ('washington','taxes','treasury') UNION SELECT 'q' as docid, 'washington' as term, 1 as count UNION SELECT 'q' as docid, 'taxes' as term, 1 as count UNION SELECT 'q' as docid, 'treasury' as term, 1 as count;
+
+select sum(a.count * b.count) from wtt_view a join wtt_view b on a.term=b.term where a.docid = 'q' group by a.docid, b.docid having sum(a.count * b.count) order by sum(a.count * b.count) desc limit 1;
+```
+
