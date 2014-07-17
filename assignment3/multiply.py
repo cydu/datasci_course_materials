@@ -27,10 +27,7 @@ def reducer(key, list_of_values):
     for item in list_of_values:
         hash_ab[item[1]].append(item[2])
     
-    result = 0
-    for k, v in hash_ab.iteritems():
-        if len(v) >= 2:
-            result += v[0] * v[1]
+    result = sum([v[0] * v[1] for k, v in hash_ab.iteritems() if len(v) >= 2])
     if result != 0:
         mr.emit((key[0], key[1], result))
 
