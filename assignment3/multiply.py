@@ -10,6 +10,7 @@ mr = MapReduce.MapReduce()
 # =============================
 # Do not modify above this line
 
+from collections import defaultdict
 N = 100
 
 def mapper(record):
@@ -22,12 +23,14 @@ def mapper(record):
             mr.emit_intermediate((k, record[2]), (matrix, record[1], record[3]))
 
 def reducer(key, list_of_values):
-    hash_A = {j: a_ij for (x, j, a_ij) in list_of_values if x == 'a'}
-    hash_B = {j: b_jk for (x, j, b_jk) in list_of_values if x == 'b'}
+    hash_ab = defaultdict(list)
+    for item in list_of_values:
+        hash_ab[item[1]].append(item[2])
     
     result = 0
-    for k in range(0, N):
-        result += hash_A.get(k, 0) * hash_B.get(k, 0)
+    for k, v in hash_ab.iteritems():
+        if len(v) >= 2:
+            result += v[0] * v[1]
     if result != 0:
         mr.emit((key[0], key[1], result))
 
